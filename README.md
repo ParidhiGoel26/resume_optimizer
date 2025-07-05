@@ -1,1 +1,1 @@
- It is a full-stack web application that allows users to upload their PDF resumes, submit a Job Description (JD), and get back an AI-enhanced version of their resume tailored to the job. The system uses OpenAI's GPT API to rewrite and optimize the content of the resume based on the JD, while also showing a visual diff between the original and optimized resume.
+
