@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📄 Job Description - AI Resume Optimizer</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f0f4ff;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 50px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 26px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .stepper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+
+    .step {
+      color: #888;
+    }
+
+    .step.completed {
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    .step.active {
+      color: #2563eb;
+      font-weight: 600;
+    }
+
+    .separator {
+      color: #bbb;
+    }
+
+    h3 {
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 160px;
+      padding: 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      resize: none;
+      margin-bottom: 8px;
+    }
+
+    .char-count {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 20px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #f9f9f9;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-sample {
+      border: none;
+      background: none;
+      color: #2563eb;
+      font-weight: 500;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .tips-box {
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 14px;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 30px;
+    }
+
+    .back-btn {
+      padding: 8px 16px;
+      background: #f3f4f6;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .continue-btn {
+      padding: 10px 20px;
+      background: #2563eb;
+      color: white;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .continue-btn:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✨ AI Resume Optimizer</h1>
+    <p class="subtitle">Upload your resume, add a job description, and let AI enhance your resume for better job matching</p>
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <span class="step completed">✅ Upload Resume</span>
+      <span class="separator">—</span>
+      <span class="step active">Job Description</span>
+      <span class="separator">—</span>
+      <span class="step">Optimize & Download</span>
+    </div>
+
+    <!-- Form -->
+    <form method="POST">
+      <h3>📋 Job Description</h3>
+      <p style="color: #555; font-size: 14px; margin-bottom: 12px;">
+        Provide the job description you want to optimize your resume for
+      </p>
+
+      <textarea name="jd" id="jdInput" placeholder="Paste the job description here..." oninput="handleInput()" required></textarea>
+      <p class="char-count"><span id="charCount">0</span> characters (minimum 50 required)</p>
+
+      <div class="btn-group">
+        <button type="button" class="btn" onclick="pasteFromClipboard()">📋 Paste from Clipboard</button>
+        <input type="file" accept=".txt" style="display:none;" id="fileInput" onchange="loadFile(this)">
+        <button type="button" class="btn" onclick="document.getElementById('fileInput').click()">📄 Upload Text File</button>
+        <button type="button" class="btn-sample" onclick="useSampleJD()">Use Sample JD</button>
+      </div>
+
+      <div class="tips-box">
+        <strong>Tips for better optimization:</strong><br>
+        • Include the complete job posting with requirements and responsibilities<br>
+        • Make sure to include specific skills and technologies mentioned<br>
+        • Include company culture and values if mentioned<br>
+        • The more detailed the job description, the better the optimization
+      </div>
+
+      <div class="actions">
+        <button type="button" class="back-btn" onclick="window.history.back()">Back</button>
+        <button type="submit" id="continueBtn" class="continue-btn" disabled>Continue to Optimization</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Script -->
+  <script>
+    const textarea = document.getElementById('jdInput');
+    const charCount = document.getElementById('charCount');
+    const continueBtn = document.getElementById('continueBtn');
+
+    function handleInput() {
+      const len = textarea.value.length;
+      charCount.innerText = len;
+      continueBtn.disabled = len < 50;
+    }
+
+    function pasteFromClipboard() {
+      navigator.clipboard.readText().then(text => {
+        textarea.value = text;
+        handleInput();
+      });
+    }
+
+    function useSampleJD() {
+      const sample = `We are hiring a skilled Full Stack Developer with experience in React, Node.js, and MongoDB. The candidate should be proficient in frontend and backend technologies, API development, Git, and DevOps basics. Good problem-solving skills and teamwork are required.`;
+      textarea.value = sample;
+      handleInput();
+    }
+
+    function loadFile(input) {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          textarea.value = e.target.result;
+          handleInput();
+        };
+        reader.readAsText(file);
+      }
+    }
+  </script>
+</body>
+</html>

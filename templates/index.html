@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>✨ AI Resume Optimizer</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f0f4ff;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 720px;
+      margin: 60px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      color: #1f2937;
+      font-weight: 700;
+    }
+    .subtitle {
+      text-align: center;
+      color: #555;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .steps {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 30px 0;
+      font-size: 14px;
+      color: #888;
+    }
+    .steps span {
+      margin: 0 8px;
+    }
+    .steps .active {
+      color: #2563eb;
+      font-weight: bold;
+    }
+
+    .upload-box {
+      border: 2px dashed #ccc;
+      padding: 30px;
+      text-align: center;
+      border-radius: 12px;
+      background: #f9fafe;
+      margin-bottom: 25px;
+    }
+
+    .upload-box svg {
+      width: 38px;
+      height: 38px;
+      margin-bottom: 12px;
+      color: #999;
+    }
+
+    .upload-box input {
+      margin-top: 10px;
+    }
+
+    .formats {
+      background: #e6f0ff;
+      border-left: 4px solid #1d4ed8;
+      padding: 10px 15px;
+      font-size: 14px;
+      color: #003e7e;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    .formats a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .formats a:hover {
+      text-decoration: underline;
+    }
+
+    .privacy {
+      background: #fff8e1;
+      border-left: 4px solid #fbbf24;
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-top: 16px;
+      border-radius: 6px;
+      color: #7a5800;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: block;
+      margin: 20px auto 0;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✨ AI Resume Optimizer</h1>
+    <p class="subtitle">Upload your resume, add a job description, and let AI enhance your resume for better job matching</p>
+
+    <div class="steps">
+      <span class="active">● Upload Resume</span>
+      <span>—</span>
+      <span>Job Description</span>
+      <span>—</span>
+      <span>Optimize & Download</span>
+    </div>
+    
+    <p><b>Upload your resume</b><br>Upload your current resume in pdf or text to get started</p>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="upload-box">
+        <!-- Upload icon (SVG) -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V4m0 0L8 8m4-4l4 4" />
+        </svg>
+        <strong></strong>
+        <p style="font-size: 13px; margin-top: 4px;">Click to upload or drag and drop</p>
+        <p style="font-size: 12px; color: #888;">PDF or TXT files only (max 10MB)</p>
+        <input type="file" name="resume" accept=".pdf,.txt" required />
+      </div>
+      <button type="submit">Next</button>
+    </form>
+
+    <div class="formats">
+      <strong>Supported formats:</strong><br>
+      • <a href="#">PDF files (.pdf)</a><br>
+      • <a href="#">Text files (.txt)</a>
+    </div>
+
+    <div class="privacy">
+      <strong>Privacy Notice:</strong> Your resume data is processed locally and not stored permanently. We respect your privacy and data security.
+    </div>
+  </div>
+</body>
+</html>
