@@ -2,14 +2,13 @@
 
 ## Abstract
 
-The Resume Optimizer is a smart web app that takes your resume and job description, and rewrites your resume to align better with the job requirements.  
-It uses OpenAI's GPT model to optimize resume content while maintaining structure and ATS (Applicant Tracking System) friendliness.
+The Resume Optimizer is a smart web app that allows users to upload their PDF resumes, submit a Job Description (JD), and get back an AI-enhanced version of their resume tailored to the job. The system uses OpenAI's GPT API to rewrite and optimize the content of the resume based on the JD, while also showing a visual diff between the original and optimized resume.
 
 ---
 
 ## Tech Stack
 
-- **Frontend**: HTML + CSS (Jinja2 templating via Flask)  
+- **Frontend**: HTML + CSS 
 - **Backend**: Python (Flask) 
 
 ---
@@ -32,7 +31,7 @@ It uses OpenAI's GPT model to optimize resume content while maintaining structur
 2.Create virtual environment & install dependencies:
 -python -m venv venv
 -venv\Scripts\activate   # On Windows
-pip install -r requirements.txt
+-pip install -r requirements.txt
 
 3.Run the app:python app.py
 
