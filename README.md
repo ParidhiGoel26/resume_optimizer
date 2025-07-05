@@ -30,8 +30,8 @@ It uses OpenAI's GPT model to optimize resume content while maintaining structur
 1. Clone the repo.
 
 2.Create virtual environment & install dependencies:
-python -m venv venv
-venv\Scripts\activate   # On Windows
+-python -m venv venv
+-venv\Scripts\activate   # On Windows
 pip install -r requirements.txt
 
 3.Run the app:python app.py
