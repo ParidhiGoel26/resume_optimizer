@@ -10,10 +10,7 @@ It uses OpenAI's GPT model to optimize resume content while maintaining structur
 ## Tech Stack
 
 - **Frontend**: HTML + CSS (Jinja2 templating via Flask)  
-- **Backend**: Python (Flask)  
-- **AI**: OpenAI GPT-3.5  
-- **PDF Handling**: ReportLab + PyMuPDF  
-- **Session Management**: Flask sessions
+- **Backend**: Python (Flask) 
 
 ---
 
@@ -35,16 +32,19 @@ It uses OpenAI's GPT model to optimize resume content while maintaining structur
    git clone https://github.com/ParidhiGoel26/resume_optimizer.git
    cd resume_optimizer
 
-2.Create virtual environment & install dependencies:
+2.**Create virtual environment & install dependencies**:
+```bash
 python -m venv venv
 venv\Scripts\activate   # On Windows
 pip install -r requirements.txt
 
-3.Set your OpenAI API key
+3.**Set your OpenAI API key**:
+```bash
 Create a .env file in the root folder:
 OPENAI_API_KEY=your-key-here
 
-4.Run the app:
+4.**Run the app**:
+```bash
 python app.py
 
 
