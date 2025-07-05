@@ -27,10 +27,7 @@ It uses OpenAI's GPT model to optimize resume content while maintaining structur
 
 ## How to Run Locally
 
-1. **Clone the repo**:
-   ```bash
-   git clone https://github.com/ParidhiGoel26/resume_optimizer.git
-   cd resume_optimizer
+1. Clone the repo.
 
 2.**Create virtual environment & install dependencies**:
 ```bash
@@ -38,14 +35,7 @@ python -m venv venv
 venv\Scripts\activate   # On Windows
 pip install -r requirements.txt
 
-3.**Set your OpenAI API key**:
-```bash
-Create a .env file in the root folder:
-OPENAI_API_KEY=your-key-here
-
-4.**Run the app**:
-```bash
-python app.py
+3.Run the app:python app.py
 
 
 
