@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Career AI{% endblock %}
+
+{% block content %}
+<div class="tool-page">
+  <div class="tool-header">
+    <div class="badge">🏠 Welcome</div>
+    <h1>Dashboard</h1>
+    <p>Your AI-powered career toolkit — pick a tool to get started.</p>
+  </div>
+
+  <div class="dashboard-grid">
+    <a href="{{ url_for('index') }}" class="dash-card">
+      <div class="icon">✨</div>
+      <h3>Resume Optimizer</h3>
+      <p>Tailor your resume to any job description with AI</p>
+    </a>
+
+    <a href="{{ url_for('analysis') }}" class="dash-card">
+      <div class="icon">📊</div>
+      <h3>Analysis</h3>
+      <p>ATS score, skill gaps, and recruiter review</p>
+    </a>
+
+    <a href="{{ url_for('career_coach') }}" class="dash-card">
+      <div class="icon">🤖</div>
+      <h3>AI Career Coach</h3>
+      <p>RAG-powered chat about your resume & career</p>
+    </a>
+
+    <a href="{{ url_for('interview_prep') }}" class="dash-card">
+      <div class="icon">🎤</div>
+      <h3>Interview Prep</h3>
+      <p>Mock interviews with AI evaluation & report</p>
+    </a>
+
+    <a href="{{ url_for('documents') }}" class="dash-card">
+      <div class="icon">📝</div>
+      <h3>Documents</h3>
+      <p>Cover letters & professional emails</p>
+    </a>
+
+    <div class="dash-card disabled">
+      <div class="icon">🔗</div>
+      <h3>Integrations</h3>
+      <p>Connect LinkedIn, Indeed, and more</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  .dash-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.15s, border-color 0.15s, transform 0.15s;
+  }
+
+  .dash-card:hover:not(.disabled) {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border-color: #93c5fd;
+    transform: translateY(-2px);
+  }
+
+  .dash-card.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .dash-card .icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .dash-card h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .dash-card p {
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+  }
+</style>
+{% endblock %}

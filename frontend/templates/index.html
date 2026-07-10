@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Optimizer — Career AI{% endblock %}
+
+{% block content %}
+<div class="tool-page">
+  <div class="tool-header">
+    <div class="badge">✨ Step 1 of 3</div>
+    <h1>Resume Optimizer</h1>
+    <p>Upload your resume and we'll tailor it to match any job description using AI.</p>
+  </div>
+
+  {% set current_step = 1 %}
+  {% include 'partials/stepper.html' %}
+
+  <div class="tool-card">
+    <div class="tool-card-title">📤 Upload your resume</div>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="upload-zone" id="uploadZone">
+        <input
+          type="file"
+          id="resumeInput"
+          name="resume"
+          class="upload-input"
+          accept=".pdf,.txt"
+          required
+        />
+        <div class="upload-content">
+          <div class="upload-icon">📄</div>
+          <h3>Drop your resume here or click to browse</h3>
+          <p class="upload-hint">PDF format · Max 10MB</p>
+          <p class="file-selected" id="fileName" style="display:none;"></p>
+        </div>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-box blue">
+          <strong>Supported formats</strong>
+          PDF (.pdf) and plain text (.txt)
+        </div>
+        <div class="info-box amber">
+          <strong>Privacy</strong>
+          Your data is processed securely and not stored permanently.
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <span></span>
+        <button type="submit" class="btn btn-primary">Continue →</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const input = document.getElementById('resumeInput');
+  const zone = document.getElementById('uploadZone');
+  const fileName = document.getElementById('fileName');
+
+  input.addEventListener('change', () => {
+    if (input.files.length) {
+      fileName.textContent = '✓ ' + input.files[0].name;
+      fileName.style.display = 'block';
+      zone.classList.add('has-file');
+    }
+  });
+
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    zone.classList.add('dragover');
+  });
+
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
+</script>
+{% endblock %}

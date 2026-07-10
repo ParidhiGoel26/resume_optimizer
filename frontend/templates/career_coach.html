@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}AI Career Coach — Career AI{% endblock %}
+
+{% block content %}
+<div class="tool-page">
+  <div class="tool-header">
+    <div class="badge">🤖 RAG-powered</div>
+    <h1>Career Chat</h1>
+    <p>Ask career questions grounded in your resume, job descriptions, optimizations, and connected profiles.</p>
+  </div>
+
+  <div class="coach-layout">
+    <aside class="coach-sidebar-panel">
+      <h3>Your Knowledge Base</h3>
+      <ul class="knowledge-list" id="knowledgeList">
+        {% if sources %}
+          {% for doc in sources %}
+          <li class="active"><span class="knowledge-dot"></span>{{ doc.label }}</li>
+          {% endfor %}
+        {% else %}
+          <li class="empty">No documents yet — upload via Resume Optimizer</li>
+        {% endif %}
+      </ul>
+
+      <h3>Integrations</h3>
+      <div id="githubStatus" class="integration-status" style="{% if not github_connected %}display:none{% endif %}">
+        ✓ GitHub @{{ github_username }}
+        <button type="button" class="btn btn-ghost" style="padding:2px 6px;font-size:11px;" onclick="disconnect('github')">Disconnect</button>
+      </div>
+      <div class="integration-form" id="githubForm" style="{% if github_connected %}display:none{% endif %}">
+        <input type="text" id="githubInput" placeholder="GitHub username" />
+        <button type="button" class="btn btn-secondary" style="padding:8px 12px;" onclick="connect('github')">Connect</button>
+      </div>
+
+      <div id="leetcodeStatus" class="integration-status" style="{% if not leetcode_connected %}display:none{% endif %}">
+        ✓ LeetCode @{{ leetcode_username }}
+        <button type="button" class="btn btn-ghost" style="padding:2px 6px;font-size:11px;" onclick="disconnect('leetcode')">Disconnect</button>
+      </div>
+      <div class="integration-form" id="leetcodeForm" style="{% if leetcode_connected %}display:none{% endif %}">
+        <input type="text" id="leetcodeInput" placeholder="LeetCode username" />
+        <button type="button" class="btn btn-secondary" style="padding:8px 12px;" onclick="connect('leetcode')">Connect</button>
+      </div>
+
+      <p style="font-size:11px;color:#94a3b8;margin:12px 0 0;">Demo: mock profile data is indexed for RAG.</p>
+
+      <button type="button" class="btn btn-secondary" style="width:100%;margin-top:16px;font-size:13px;" onclick="clearChat()">Clear chat</button>
+    </aside>
+
+    <div class="coach-chat-wrap">
+      <div class="coach-chat-header">
+        <h2>💬 Career Chat</h2>
+        <span style="font-size:12px;color:#94a3b8;">Answers use your documents, not generic GPT</span>
+      </div>
+
+      <div class="coach-chat-messages" id="chatMessages">
+        {% if chat_history %}
+          {% for turn in chat_history %}
+          <div class="chat-bubble user">{{ turn.user }}</div>
+          <div class="chat-bubble assistant">{{ turn.assistant }}
+            {% if turn.sources %}
+            <div class="chat-sources">Sources: {% for s in turn.sources %}<span>{{ s }}</span>{% endfor %}</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="chat-welcome" id="chatWelcome">
+          <h3>What would you like to know?</h3>
+          <p>I answer using your resume, JD, past optimizations, GitHub & LeetCode.</p>
+          <div class="suggested-questions">
+            <button type="button" class="suggested-btn" onclick="askSuggested(this)">Should I remove my Smart Traffic Light project?</button>
+            <button type="button" class="suggested-btn" onclick="askSuggested(this)">Which project should I keep first?</button>
+            <button type="button" class="suggested-btn" onclick="askSuggested(this)">Is my resume good enough for Amazon SDE-1?</button>
+            <button type="button" class="suggested-btn" onclick="askSuggested(this)">What skills am I missing?</button>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="coach-chat-input">
+        <textarea id="chatInput" placeholder="Ask about projects, skills, job fit..." rows="1" onkeydown="handleKey(event)"></textarea>
+        <button type="button" class="btn btn-primary" id="sendBtn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const chatMessages = document.getElementById('chatMessages');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+
+  function scrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function formatReply(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function appendBubble(role, text, sources) {
+    const welcome = document.getElementById('chatWelcome');
+    if (welcome) welcome.remove();
+
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble ' + role;
+    if (role === 'assistant') {
+      bubble.innerHTML = formatReply(text);
+      if (sources && sources.length) {
+        const src = document.createElement('div');
+        src.className = 'chat-sources';
+        src.innerHTML = 'Sources: ' + sources.map(s => `<span>${s}</span>`).join('');
+        bubble.appendChild(src);
+      }
+    } else {
+      bubble.textContent = text;
+    }
+    chatMessages.appendChild(bubble);
+    scrollToBottom();
+  }
+
+  function showTyping() {
+    const el = document.createElement('div');
+    el.className = 'typing-indicator';
+    el.id = 'typing';
+    el.textContent = 'Coach is thinking...';
+    chatMessages.appendChild(el);
+    scrollToBottom();
+  }
+
+  function hideTyping() {
+    const el = document.getElementById('typing');
+    if (el) el.remove();
+  }
+
+  async function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    chatInput.value = '';
+    sendBtn.disabled = true;
+    appendBubble('user', message);
+    showTyping();
+
+    try {
+      const res = await fetch('{{ url_for("career_coach_chat_api") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      const data = await res.json();
+      hideTyping();
+      if (data.error && !data.reply) {
+        appendBubble('assistant', 'Error: ' + data.error);
+      } else {
+        appendBubble('assistant', data.reply, data.sources);
+      }
+    } catch (err) {
+      hideTyping();
+      appendBubble('assistant', 'Network error. Please try again.');
+    }
+    sendBtn.disabled = false;
+    chatInput.focus();
+  }
+
+  function askSuggested(btn) {
+    chatInput.value = btn.textContent;
+    sendMessage();
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  async function connect(platform) {
+    const input = document.getElementById(platform + 'Input');
+    const username = input.value.trim();
+    if (!username) return;
+
+    const res = await fetch('{{ url_for("career_coach_connect") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform, username }),
+    });
+    const data = await res.json();
+    if (data.ok) updateIntegrations(data);
+  }
+
+  async function disconnect(platform) {
+    const res = await fetch('{{ url_for("career_coach_connect") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform, disconnect: true }),
+    });
+    const data = await res.json();
+    if (data.ok) updateIntegrations(data);
+  }
+
+  function updateIntegrations(data) {
+    if (data.sources) {
+      const list = document.getElementById('knowledgeList');
+      list.innerHTML = data.sources.length
+        ? data.sources.map(d => `<li class="active"><span class="knowledge-dot"></span>${d.label}</li>`).join('')
+        : '<li class="empty">No documents yet</li>';
+    }
+    location.reload();
+  }
+
+  async function clearChat() {
+    await fetch('{{ url_for("career_coach_clear") }}', { method: 'POST' });
+    location.reload();
+  }
+
+  scrollToBottom();
+</script>
+{% endblock %}

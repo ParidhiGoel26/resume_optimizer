@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Job Description — Career AI{% endblock %}
+
+{% block content %}
+<div class="tool-page">
+  <div class="tool-header">
+    <div class="badge">✨ Step 2 of 3</div>
+    <h1>Job Description</h1>
+    <p>Paste the role you're applying for — the more detail, the better the optimization.</p>
+  </div>
+
+  {% set current_step = 2 %}
+  {% include 'partials/stepper.html' %}
+
+  <form method="POST">
+    <div class="form-layout">
+      <div class="tool-card">
+        <div class="tool-card-title">📋 Paste job description</div>
+        <textarea
+          name="jd"
+          id="jdInput"
+          class="tool-textarea"
+          placeholder="Paste the full job posting here — include requirements, responsibilities, and preferred skills..."
+          oninput="handleInput()"
+          required
+        ></textarea>
+        <p class="char-hint" id="charHint"><span id="charCount">0</span> / 50 characters minimum</p>
+
+        <div class="btn-group">
+          <button type="button" class="btn btn-secondary" onclick="pasteFromClipboard()">📋 Paste</button>
+          <input type="file" accept=".txt" style="display:none;" id="fileInput" onchange="loadFile(this)">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">📄 Upload .txt</button>
+          <button type="button" class="btn btn-ghost" onclick="useSampleJD()">Try sample JD</button>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="window.history.back()">← Back</button>
+          <button type="submit" id="continueBtn" class="btn btn-primary" disabled>Run Optimization →</button>
+        </div>
+      </div>
+
+      <div class="tips-panel">
+        <h4>💡 Tips for better results</h4>
+        <ul>
+          <li>Include the complete job posting</li>
+          <li>List specific skills & technologies</li>
+          <li>Add responsibilities and qualifications</li>
+          <li>Mention company culture if available</li>
+          <li>More detail = better keyword matching</li>
+        </ul>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const textarea = document.getElementById('jdInput');
+  const charCount = document.getElementById('charCount');
+  const charHint = document.getElementById('charHint');
+  const continueBtn = document.getElementById('continueBtn');
+
+  function handleInput() {
+    const len = textarea.value.length;
+    charCount.innerText = len;
+    continueBtn.disabled = len < 50;
+    charHint.classList.toggle('valid', len >= 50);
+  }
+
+  function pasteFromClipboard() {
+    navigator.clipboard.readText().then(text => {
+      textarea.value = text;
+      handleInput();
+    });
+  }
+
+  function useSampleJD() {
+    textarea.value = `We are hiring a skilled Full Stack Developer with experience in React, Node.js, and MongoDB. The candidate should be proficient in frontend and backend technologies, API development, Git, and DevOps basics. Good problem-solving skills and teamwork are required.`;
+    handleInput();
+  }
+
+  function loadFile(input) {
+    const file = input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        textarea.value = e.target.result;
+        handleInput();
+      };
+      reader.readAsText(file);
+    }
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+<div class="recruiter-card">
+  <h2>👔 Recruiter Review</h2>
+  <div class="subtitle">AI Recruiter Simulator</div>
+
+  <div class="recruiter-score">
+    <span class="num">{{ review.overall_impression }}</span>
+    <span class="text">/ 10 Overall Impression</span>
+  </div>
+
+  <div class="review-grid">
+    <div class="review-box strengths">
+      <h3>Strengths</h3>
+      <ul>
+        {% for item in review.strengths %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="review-box weaknesses">
+      <h3>Weaknesses</h3>
+      <ul>
+        {% for item in review.weaknesses %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="verdict-row">
+    <span style="font-weight: 600;">Would I shortlist?</span>
+    <span class="verdict-pill {{ 'yes' if review.would_shortlist else 'no' }}">
+      {{ 'YES' if review.would_shortlist else 'NO' }}
+    </span>
+    <div class="progress-mini">
+      <label>Confidence: {{ review.confidence }}%</label>
+      <div class="track">
+        <div class="fill" style="width: {{ review.confidence }}%"></div>
+      </div>
+    </div>
+  </div>
+</div>

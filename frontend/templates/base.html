@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Career AI{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tools.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Toggle menu">☰</button>
+
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Career AI</h1>
+        <p>Your job search copilot</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="{{ url_for('dashboard') }}" class="nav-item {% if active_nav == 'dashboard' %}active{% endif %}">
+          <span class="nav-icon">🏠</span>
+          Dashboard
+        </a>
+
+        <div class="nav-section-label">Tools</div>
+
+        <a href="{{ url_for('index') }}" class="nav-item {% if active_nav == 'resume_optimizer' %}active{% endif %}">
+          <span class="nav-icon">✨</span>
+          Resume Optimizer
+        </a>
+
+        <a href="{{ url_for('career_coach') }}" class="nav-item {% if active_nav == 'career_coach' %}active{% endif %}">
+          <span class="nav-icon">🤖</span>
+          AI Career Coach
+        </a>
+
+        <a href="{{ url_for('analysis') }}" class="nav-item {% if active_nav == 'analysis' %}active{% endif %}">
+          <span class="nav-icon">📊</span>
+          Analysis
+        </a>
+
+        <a href="{{ url_for('interview_prep') }}" class="nav-item {% if active_nav == 'interview_prep' %}active{% endif %}">
+          <span class="nav-icon">🎤</span>
+          Interview Prep
+        </a>
+
+        <a href="{{ url_for('documents') }}" class="nav-item {% if active_nav == 'documents' %}active{% endif %}">
+          <span class="nav-icon">📝</span>
+          Documents
+        </a>
+
+        <div class="nav-section-label">More</div>
+
+        <a href="#" class="nav-item disabled">
+          <span class="nav-icon">🔗</span>
+          Integrations
+          <span class="nav-badge">Soon</span>
+        </a>
+
+        <a href="#" class="nav-item disabled">
+          <span class="nav-icon">⚙️</span>
+          Settings
+          <span class="nav-badge">Soon</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        Resume Optimizer v1.0
+      </div>
+    </aside>
+
+    <main class="main-content">
+      {% if demo_mode %}
+      <div style="background:#fef3c7;border:1px solid #fcd34d;color:#92400e;padding:12px 18px;border-radius:10px;margin-bottom:20px;font-size:14px;font-weight:500;">
+        🧪 <strong>Demo Mode</strong> — AI responses are simulated locally. Set <code>DEMO_MODE=false</code> in .env when you have API credits.
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

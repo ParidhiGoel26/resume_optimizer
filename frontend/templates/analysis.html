@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis — Career AI{% endblock %}
+
+{% block content %}
+<div class="tool-page">
+  <div class="tool-header">
+    <div class="badge">📊 Deep Insights</div>
+    <h1>Resume Analysis</h1>
+    <p>ATS scoring, skill gap breakdown, and an AI recruiter's perspective on your fit for the role.</p>
+  </div>
+
+  {% if form_error %}
+  <div class="alert alert-error"><strong>⚠️ {{ form_error }}</strong></div>
+  {% endif %}
+
+  {% if not results %}
+
+  {% if has_session %}
+  <div class="session-quick">
+    <p>📎 Resume & job description available from Resume Optimizer</p>
+    <form method="POST" style="margin:0;">
+      <button type="submit" name="use_session" value="1" class="btn btn-primary">Analyze Last Upload</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <div class="tool-card">
+    <div class="tool-card-title">{% if has_session %}Or upload fresh data{% else %}Upload & analyze{% endif %}</div>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="upload-zone" id="analysisUploadZone" style="margin-bottom: 20px;">
+        <input
+          type="file"
+          id="analysisResume"
+          name="resume"
+          class="upload-input"
+          accept=".pdf"
+          {% if not has_session %}required{% endif %}
+        />
+        <div class="upload-content">
+          <div class="upload-icon">📄</div>
+          <h3>Upload resume (PDF)</h3>
+          <p class="upload-hint">{% if has_session %}Optional if using last upload{% else %}Required{% endif %}</p>
+          <p class="file-selected" id="analysisFileName" style="display:none;"></p>
+        </div>
+      </div>
+
+      <label style="font-size: 14px; font-weight: 600; color: #334155; display: block; margin-bottom: 8px;">Job Description</label>
+      <textarea
+        name="jd"
+        class="tool-textarea"
+        placeholder="Paste the job description here..."
+        {% if not has_session %}required{% endif %}
+      >{{ session_jd or '' }}</textarea>
+      <p class="char-hint">Minimum 50 characters</p>
+
+      <div class="form-actions">
+        <span></span>
+        <button type="submit" class="btn btn-primary">Run Analysis →</button>
+      </div>
+    </form>
+  </div>
+
+  {% else %}
+
+  {% if api_errors %}
+  <div class="alert alert-error">
+    <strong>⚠️ Some AI features could not run</strong>
+    <ul>
+      {% for error in api_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="analysis-bento">
+    <!-- ATS Score -->
+    <div class="feature-card ats">
+      <h2>📈 ATS Score</h2>
+      <div class="ats-ring-wrap">
+        <div class="ats-ring" style="--pct: {{ results.ats_score }}">
+          <div class="ats-ring-inner">
+            <span class="pct">{{ results.ats_score }}%</span>
+            <span class="lbl">Match</span>
+          </div>
+        </div>
+        <div>
+          <p style="margin: 0 0 12px; font-size: 14px; color: #64748b; line-height: 1.5;">
+            How well your resume keywords overlap with the job description.
+          </p>
+          {% if results.matched_keywords %}
+          <div class="tag-cloud">
+            {% for word in results.matched_keywords[:24] %}
+              <span class="tag">{{ word }}</span>
+            {% endfor %}
+            {% if results.matched_keywords|length > 24 %}
+              <span class="tag">+{{ results.matched_keywords|length - 24 }} more</span>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill Gap -->
+    <div class="feature-card skills">
+      <h2>🎯 Skill Gap</h2>
+      {% if results.skill_gap %}
+      <div class="skill-panels">
+        <div class="skill-panel match">
+          <h3>✔ Matching</h3>
+          <ul>
+            {% for skill in results.skill_gap.matching_skills %}
+              <li>{{ skill }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="skill-panel missing">
+          <h3>✖ Missing</h3>
+          <ul>
+            {% for skill in results.skill_gap.missing_skills %}
+              <li>{{ skill }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="skill-panel transfer">
+          <h3>↔ Transferable</h3>
+          <ul>
+            {% for skill in results.skill_gap.transferable_skills %}
+              <li>{{ skill }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div class="gap-quote">"{{ results.skill_gap.gap_summary }}"</div>
+      <div class="readiness">
+        <label>Skill Readiness: <strong>{{ results.skill_gap.readiness_score }}%</strong></label>
+        <div class="track">
+          <div class="fill" style="width: {{ results.skill_gap.readiness_score }}%"></div>
+        </div>
+      </div>
+      {% else %}
+      <p class="unavailable-msg">Unavailable — check your OpenAI API quota.</p>
+      {% endif %}
+    </div>
+
+    <!-- Recruiter Review -->
+    <div class="full-width">
+      {% if results.recruiter_review %}
+        {% set review = results.recruiter_review %}
+        {% include 'partials/recruiter_review.html' %}
+      {% else %}
+      <div class="feature-card recruiter">
+        <h2>👔 Recruiter Review</h2>
+        <p class="unavailable-msg">Unavailable — check your OpenAI API quota.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="form-actions" style="border-top: none; padding-top: 8px;">
+    <a href="{{ url_for('analysis') }}" class="btn btn-secondary">← New Analysis</a>
+    <a href="{{ url_for('index') }}" class="btn btn-primary">✨ Optimize Resume</a>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const analysisInput = document.getElementById('analysisResume');
+  const analysisZone = document.getElementById('analysisUploadZone');
+  const analysisFileName = document.getElementById('analysisFileName');
+
+  if (analysisInput && analysisZone) {
+    analysisInput.addEventListener('change', () => {
+      if (analysisInput.files.length) {
+        analysisFileName.textContent = '✓ ' + analysisInput.files[0].name;
+        analysisFileName.style.display = 'block';
+        analysisZone.classList.add('has-file');
+      }
+    });
+
+    analysisZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      analysisZone.classList.add('dragover');
+    });
+
+    analysisZone.addEventListener('dragleave', () => analysisZone.classList.remove('dragover'));
+
+    analysisZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      analysisZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        analysisInput.files = e.dataTransfer.files;
+        analysisInput.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+</script>
+{% endblock %}

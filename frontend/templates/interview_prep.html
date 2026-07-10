@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Prep — Career AI{% endblock %}
+
+{% block content %}
+<div class="tool-page" id="interviewApp">
+  <div class="tool-header">
+    <div class="badge">🎤 Mock Interview</div>
+    <h1>Interview Prep</h1>
+    <p>10–15 personalized questions from your resume, JD, behavioral & HR — with AI answer evaluation and a final report.</p>
+  </div>
+
+  <!-- INTRO -->
+  <div id="introView" class="tool-card" {% if interview %}style="display:none"{% endif %}>
+    {% if not has_data %}
+    <div class="alert alert-warning">
+      <strong>Get personalized questions:</strong> Upload your resume and paste a job description in
+      <a href="{{ url_for('index') }}">Resume Optimizer</a> first.
+    </div>
+    {% else %}
+    <div class="interview-types">
+      <div class="type-chip resume">📄 Resume-Based</div>
+      <div class="type-chip jd">📋 JD-Based</div>
+      <div class="type-chip behavioral">⭐ Behavioral (STAR)</div>
+      <div class="type-chip hr">💼 HR Practice</div>
+    </div>
+    <ul class="interview-features">
+      <li>Questions generated from <strong>your projects & tech stack</strong></li>
+      <li>JD skills like Kafka, AWS become interview topics</li>
+      <li>STAR behavioral + HR questions included</li>
+      <li>Answers evaluated in the background as you go</li>
+      <li>Final report with scores, strong/weak areas & recommendations</li>
+    </ul>
+    <div class="data-status">
+      {% if has_resume %}<span class="status-ok">✓ Resume loaded</span>{% else %}<span class="status-miss">✗ No resume</span>{% endif %}
+      {% if has_jd %}<span class="status-ok">✓ Job description loaded</span>{% else %}<span class="status-miss">✗ No JD</span>{% endif %}
+    </div>
+    {% endif %}
+    <div class="form-actions" style="border-top:none;padding-top:16px;">
+      <button type="button" class="btn btn-primary" id="startBtn" {% if not has_data %}disabled{% endif %} onclick="startInterview()">
+        Start Mock Interview
+      </button>
+    </div>
+  </div>
+
+  <!-- ACTIVE INTERVIEW -->
+  <div id="interviewView" {% if interview and not interview.report %}style="display:block"{% else %}style="display:none"{% endif %}>
+    <div class="interview-progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <p class="progress-text" id="progressText">Question 1 of 12</p>
+
+    <div class="tool-card interview-question-card">
+      <span class="question-type-badge" id="questionBadge">Resume</span>
+      <h2 id="questionText" class="question-text"></h2>
+      <p class="question-topic" id="questionTopic"></p>
+
+      <textarea id="answerInput" class="tool-textarea" placeholder="Type your answer here... (Use STAR for behavioral questions)" rows="6"></textarea>
+
+      <div class="form-actions" style="border-top:none;">
+        <button type="button" class="btn btn-primary" id="submitAnswerBtn" onclick="submitAnswer()">Submit Answer</button>
+      </div>
+    </div>
+
+    <div id="submitPanel" class="tool-card submit-panel" style="display:none;">
+      <p class="submit-confirm" id="submitConfirm">✓ Answer submitted. Scores appear in your final report.</p>
+      <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Next Question →</button>
+    </div>
+  </div>
+
+  <!-- REPORT -->
+  <div id="reportView" {% if interview and interview.report %}style="display:block"{% else %}style="display:none"{% endif %}>
+    <div class="tool-card report-card">
+      <h2>📊 Interview Feedback Report</h2>
+      <div class="report-summary" id="reportSummary"></div>
+
+      <div class="report-columns">
+        <div class="report-box strong">
+          <h3>Strong Areas</h3>
+          <ul id="strongList"></ul>
+        </div>
+        <div class="report-box weak">
+          <h3>Weak Areas</h3>
+          <ul id="weakList"></ul>
+        </div>
+      </div>
+
+      <div class="recommendations-box">
+        <h3>Recommendations</h3>
+        <ul id="recList"></ul>
+      </div>
+
+      <div class="form-actions" style="border-top:none;">
+        <button type="button" class="btn btn-secondary" onclick="resetInterview()">← New Interview</button>
+        <a href="{{ url_for('career_coach') }}" class="btn btn-primary">Ask Career Coach</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if interview %}
+<script id="interviewBootstrap" type="application/json">
+{{ {
+  "report": interview.report,
+  "total": interview.questions | length,
+  "currentIndex": interview.current_index,
+  "currentQuestion": interview.questions[interview.current_index] if interview.current_index < (interview.questions | length) else none
+} | tojson }}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .interview-types { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  .type-chip { padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .type-chip.resume { background: #eff6ff; color: #1d4ed8; }
+  .type-chip.jd { background: #f0fdf4; color: #166534; }
+  .type-chip.behavioral { background: #fef3c7; color: #92400e; }
+  .type-chip.hr { background: #fae8ff; color: #7e22ce; }
+
+  .interview-features { margin: 0 0 20px; padding-left: 20px; line-height: 1.8; color: #475569; font-size: 14px; }
+  .data-status { display: flex; gap: 16px; font-size: 13px; margin-bottom: 8px; }
+  .status-ok { color: #16a34a; font-weight: 600; }
+  .status-miss { color: #94a3b8; }
+
+  .interview-progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #7c3aed); transition: width 0.3s; width: 0%; }
+  .progress-text { font-size: 13px; color: #64748b; margin: 0 0 20px; }
+
+  .question-type-badge {
+    display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 4px 10px; border-radius: 6px; margin-bottom: 12px;
+  }
+  .question-type-badge.resume { background: #dbeafe; color: #1e40af; }
+  .question-type-badge.jd { background: #dcfce7; color: #166534; }
+  .question-type-badge.behavioral { background: #fef3c7; color: #92400e; }
+  .question-type-badge.hr { background: #f3e8ff; color: #6b21a8; }
+
+  .question-text { margin: 0 0 8px; font-size: 20px; color: #0f172a; line-height: 1.4; }
+  .question-topic { margin: 0 0 20px; font-size: 13px; color: #94a3b8; }
+
+  .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .score-item { background: #f8fafc; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid #e2e8f0; }
+  .score-item .label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; }
+  .score-item .val { font-size: 24px; font-weight: 800; color: #2563eb; margin-top: 4px; }
+  .score-item.overall .val { color: #7c3aed; font-size: 28px; }
+
+  .submit-panel { text-align: center; }
+  .submit-confirm { font-size: 14px; color: #166534; font-weight: 600; margin: 0 0 16px; padding: 14px; background: #f0fdf4; border-radius: 10px; border: 1px solid #bbf7d0; }
+
+  .report-summary { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; }
+  .report-stat { text-align: center; padding: 16px 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+  .report-stat .num { font-size: 32px; font-weight: 800; color: #2563eb; }
+  .report-stat .lbl { font-size: 13px; color: #64748b; }
+
+  .report-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 600px) { .report-columns { grid-template-columns: 1fr; } }
+
+  .report-box { border-radius: 12px; padding: 18px; }
+  .report-box.strong { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .report-box.weak { background: #fef2f2; border: 1px solid #fecaca; }
+  .report-box h3 { margin: 0 0 10px; font-size: 14px; }
+  .report-box.strong h3 { color: #166534; }
+  .report-box.weak h3 { color: #b91c1c; }
+  .report-box ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.7; }
+
+  .recommendations-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 18px; margin-bottom: 20px; }
+  .recommendations-box h3 { margin: 0 0 10px; color: #1e40af; font-size: 14px; }
+  .recommendations-box ul { margin: 0; padding-left: 18px; font-size: 14px; color: #1e3a8a; line-height: 1.7; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let state = {
+    total: 0,
+    progress: 0,
+    currentQuestion: null,
+    pendingNext: null,
+  };
+
+  const TYPE_LABELS = { resume: 'Resume-Based', jd: 'JD-Based', behavioral: 'Behavioral', hr: 'HR' };
+
+  function showView(name) {
+    ['introView', 'interviewView', 'reportView'].forEach(id => {
+      document.getElementById(id).style.display = id === name ? 'block' : 'none';
+    });
+  }
+
+  function renderQuestion(q) {
+    state.currentQuestion = q;
+    document.getElementById('questionBadge').textContent = TYPE_LABELS[q.type] || q.type;
+    document.getElementById('questionBadge').className = 'question-type-badge ' + q.type;
+    document.getElementById('questionText').textContent = q.text;
+    document.getElementById('questionTopic').textContent = q.topic ? 'Topic: ' + q.topic : '';
+    document.getElementById('answerInput').value = '';
+    document.getElementById('submitPanel').style.display = 'none';
+    document.getElementById('submitAnswerBtn').disabled = false;
+  }
+
+  function updateProgress(current, total) {
+    state.progress = current;
+    state.total = total;
+    const pct = total ? (current / total) * 100 : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = `Question ${Math.min(current + 1, total)} of ${total}`;
+  }
+
+  async function startInterview() {
+    const res = await fetch('{{ url_for("interview_prep_start") }}', { method: 'POST' });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+
+    state.total = data.total;
+    showView('interviewView');
+    updateProgress(0, data.total);
+    renderQuestion(data.question);
+  }
+
+  async function submitAnswer() {
+    const answer = document.getElementById('answerInput').value.trim();
+    if (!answer) { alert('Please type your answer.'); return; }
+
+    document.getElementById('submitAnswerBtn').disabled = true;
+
+    const res = await fetch('{{ url_for("interview_prep_answer") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer }),
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); document.getElementById('submitAnswerBtn').disabled = false; return; }
+
+    updateProgress(data.progress, data.total);
+    state.pendingNext = data.done ? null : data.next_question;
+
+    if (data.done) {
+      document.getElementById('submitConfirm').textContent = '✓ All answers submitted. Your report is ready.';
+      document.getElementById('nextBtn').textContent = 'View Report →';
+      document.getElementById('nextBtn').onclick = () => showReport(data.report);
+      document.getElementById('submitPanel').style.display = 'block';
+      document.getElementById('submitPanel').scrollIntoView({ behavior: 'smooth' });
+    } else {
+      document.getElementById('submitConfirm').textContent = '✓ Answer submitted. Scores appear in your final report.';
+      document.getElementById('nextBtn').textContent = 'Next Question →';
+      document.getElementById('nextBtn').onclick = nextQuestion;
+      document.getElementById('submitPanel').style.display = 'block';
+      document.getElementById('submitPanel').scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  function nextQuestion() {
+    if (state.pendingNext) {
+      document.getElementById('submitPanel').style.display = 'none';
+      renderQuestion(state.pendingNext);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  const DIM_LABELS = {
+    technical_accuracy: 'Technical',
+    completeness: 'Completeness',
+    communication: 'Communication',
+    confidence: 'Confidence',
+    structure: 'Structure',
+  };
+
+  function showReport(report) {
+    let summaryHtml = `
+      <div class="report-stat"><div class="num">${report.questions_answered}</div><div class="lbl">Questions Answered</div></div>
+      <div class="report-stat"><div class="num">${report.average_overall}</div><div class="lbl">Average Score /10</div></div>
+    `;
+    if (report.dimension_scores) {
+      for (const [key, val] of Object.entries(report.dimension_scores)) {
+        summaryHtml += `<div class="report-stat"><div class="num">${val}</div><div class="lbl">${DIM_LABELS[key] || key}</div></div>`;
+      }
+    }
+    document.getElementById('reportSummary').innerHTML = summaryHtml;
+    document.getElementById('strongList').innerHTML = report.strong_areas.map(a => `<li>✔ ${a}</li>`).join('');
+    document.getElementById('weakList').innerHTML = report.weak_areas.map(a => `<li>✖ ${a}</li>`).join('');
+    document.getElementById('recList').innerHTML = report.recommendations.map(r => `<li>${r}</li>`).join('');
+    showView('reportView');
+  }
+
+  async function resetInterview() {
+    await fetch('{{ url_for("interview_prep_reset") }}', { method: 'POST' });
+    location.reload();
+  }
+
+  function restoreInterviewSession() {
+    const bootstrap = document.getElementById('interviewBootstrap');
+    if (!bootstrap) return;
+
+    const data = JSON.parse(bootstrap.textContent);
+    if (data.report) {
+      showReport(data.report);
+      return;
+    }
+
+    if (data.total > 0) {
+      showView('interviewView');
+      state.total = data.total;
+      updateProgress(data.currentIndex, state.total);
+      if (data.currentQuestion) {
+        renderQuestion(data.currentQuestion);
+      }
+    }
+  }
+
+  restoreInterviewSession();
+</script>
+{% endblock %}

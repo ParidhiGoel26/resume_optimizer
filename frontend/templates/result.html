@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Results — Career AI{% endblock %}
+
+{% block content %}
+<div class="tool-page">
+  <div class="tool-header">
+    <div class="badge">✨ Step 3 of 3</div>
+    <h1>Your Optimized Resume</h1>
+    <p>Review AI enhancements, recruiter feedback, and download your tailored resume.</p>
+  </div>
+
+  {% set current_step = 3 %}
+  {% include 'partials/stepper.html' %}
+
+  {% if api_errors %}
+  <div class="alert alert-error">
+    <strong>⚠️ AI features unavailable</strong>
+    <ul>
+      {% for error in api_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if optimization_failed %}
+  <div class="alert alert-warning">
+    <strong>Optimization could not run.</strong> Showing your original resume. ATS scoring still works.
+  </div>
+  {% else %}
+  <div class="alert alert-success">
+    <strong>✅ Resume optimized successfully</strong> — formatting preserved with enhanced ATS keywords.
+  </div>
+  {% endif %}
+
+  {% if recruiter_review %}
+    {% set review = recruiter_review %}
+    {% include 'partials/recruiter_review.html' %}
+  {% endif %}
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="value">{{ ats_score }}%</div>
+      <div class="label">ATS Match Score</div>
+    </div>
+    <div class="stat-card accent-green">
+      <div class="value">{{ added_keywords|length }}</div>
+      <div class="label">Keywords Added</div>
+    </div>
+    {% if recruiter_review %}
+    <div class="stat-card accent-amber">
+      <div class="value">{{ recruiter_review.overall_impression }}</div>
+      <div class="label">Recruiter Score /10</div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if added_keywords %}
+  <div class="tool-card" style="margin-bottom: 24px;">
+    <div class="tool-card-title">🏷️ Added Keywords</div>
+    <div class="tag-cloud">
+      {% for word in added_keywords %}
+        <span class="tag added">{{ word }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="resume-grid">
+    <div class="resume-panel">
+      <div class="resume-panel-header">📄 Original Resume</div>
+      <div class="resume-panel-body">{{ original_resume }}</div>
+    </div>
+    <div class="resume-panel">
+      <div class="resume-panel-header optimized">
+        {% if optimization_failed %}📄 Resume{% else %}✨ Optimized Resume{% endif %}
+      </div>
+      <div class="resume-panel-body">{{ optimized_resume }}</div>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <a class="btn btn-primary" href="{{ url_for('download_pdf') }}">⬇️ Download PDF</a>
+    <button class="btn btn-secondary" onclick="toggleDiff()">🔍 Show Differences</button>
+    <a class="btn btn-secondary" href="{{ url_for('analysis') }}">📊 Full Analysis</a>
+    <a class="btn btn-secondary" href="{{ url_for('index') }}">🔁 Start Over</a>
+  </div>
+
+  <div id="diff-section" class="diff-section" style="display:none;">
+    <div class="tool-card-title">🔁 Changes Highlighted</div>
+    <div class="resume-panel">
+      <div class="resume-panel-body">{{ diff_html|safe }}</div>
+    </div>
+  </div>
+
+  {% if not optimization_failed %}
+  <div class="improvements-card">
+    <h3>Key Improvements</h3>
+    <ul>
+      <li>Added relevant keywords aligned with the job description</li>
+      <li>Improved ATS compatibility ({{ ats_score }}% keyword match)</li>
+      <li>Preserved original resume structure and formatting</li>
+      <li>Enhanced wording in experience, skills, and summary sections</li>
+    </ul>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function toggleDiff() {
+    const diff = document.getElementById("diff-section");
+    const visible = diff.style.display !== "none";
+    diff.style.display = visible ? "none" : "block";
+  }
+</script>
+{% endblock %}

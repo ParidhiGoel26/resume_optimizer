@@ -1,8 +1,10 @@
 import re
 
+
 def extract_keywords(text):
-    words = re.findall(r'\b[a-zA-Z]{4,}\b', text.lower())
+    words = re.findall(r"\b[a-zA-Z]{4,}\b", text.lower())
     return set(words)
+
 
 def calculate_ats_score(resume, jd):
     resume_words = extract_keywords(resume)

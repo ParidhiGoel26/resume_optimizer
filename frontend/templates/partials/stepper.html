@@ -1,0 +1,16 @@
+<div class="step-progress">
+  <div class="step-item {% if current_step > 1 %}completed{% elif current_step == 1 %}active{% endif %}">
+    <div class="step-dot">{% if current_step > 1 %}✓{% else %}1{% endif %}</div>
+    <span>Upload Resume</span>
+  </div>
+  <div class="step-line {% if current_step > 1 %}done{% endif %}"></div>
+  <div class="step-item {% if current_step > 2 %}completed{% elif current_step == 2 %}active{% endif %}">
+    <div class="step-dot">{% if current_step > 2 %}✓{% else %}2{% endif %}</div>
+    <span>Job Description</span>
+  </div>
+  <div class="step-line {% if current_step > 2 %}done{% endif %}"></div>
+  <div class="step-item {% if current_step == 3 %}active{% endif %}">
+    <div class="step-dot">3</div>
+    <span>Optimize</span>
+  </div>
+</div>

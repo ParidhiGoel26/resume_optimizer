@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Documents — Career AI{% endblock %}
+
+{% block content %}
+<div class="tool-page">
+  <div class="tool-header">
+    <div class="badge">📝 Career Documents</div>
+    <h1>Documents</h1>
+    <p>Generate ATS-friendly cover letters and professional emails from your resume and job description.</p>
+  </div>
+
+  {% if not has_data %}
+  <div class="alert alert-warning">
+    <strong>Resume + JD required.</strong> Complete
+    <a href="{{ url_for('index') }}">Resume Optimizer</a> first to personalize your documents.
+  </div>
+  {% else %}
+  <div class="data-status" style="margin-bottom:20px;">
+    {% if has_resume %}<span class="status-ok">✓ Resume loaded</span>{% endif %}
+    {% if has_jd %}<span class="status-ok">✓ Job description loaded</span>{% endif %}
+  </div>
+  {% endif %}
+
+  <div class="doc-tabs">
+    <button type="button" class="doc-tab active" data-tab="cover" onclick="switchTab('cover')">📄 Cover Letter</button>
+    <button type="button" class="doc-tab" data-tab="email" onclick="switchTab('email')">✉️ Professional Email</button>
+  </div>
+
+  <!-- Cover Letter -->
+  <div id="coverPanel" class="tool-card doc-panel">
+    <div class="tool-card-title">Cover Letter Generator</div>
+    <p style="font-size:14px;color:#64748b;margin:0 0 16px;">Generated from your resume + JD. ATS-friendly with keyword alignment.</p>
+
+    <label style="font-size:13px;font-weight:600;color:#334155;display:block;margin-bottom:8px;">Tone</label>
+    <div class="tone-picker">
+      <button type="button" class="tone-btn active" data-tone="professional" onclick="selectTone(this)">Professional</button>
+      <button type="button" class="tone-btn" data-tone="friendly" onclick="selectTone(this)">Friendly</button>
+      <button type="button" class="tone-btn" data-tone="startup" onclick="selectTone(this)">Startup</button>
+    </div>
+
+    <div class="form-actions" style="border-top:none;padding-top:16px;">
+      <button type="button" class="btn btn-primary" id="genCoverBtn" {% if not has_data %}disabled{% endif %} onclick="generateCoverLetter()">Generate Cover Letter</button>
+    </div>
+
+    <div id="coverOutput" class="doc-output" style="display:none;">
+      <div class="doc-output-header">
+        <span>Preview</span>
+        <div class="export-btns">
+          <button type="button" class="btn btn-secondary" onclick="downloadDoc('cover_letter','txt')">⬇️ TXT</button>
+          <button type="button" class="btn btn-secondary" onclick="downloadDoc('cover_letter','pdf')">⬇️ PDF</button>
+        </div>
+      </div>
+      <pre id="coverText" class="doc-preview"></pre>
+    </div>
+  </div>
+
+  <!-- Email -->
+  <div id="emailPanel" class="tool-card doc-panel" style="display:none;">
+    <div class="tool-card-title">Professional Email Generator</div>
+    <p style="font-size:14px;color:#64748b;margin:0 0 16px;">Ready-to-send emails tailored to your application.</p>
+
+    <label style="font-size:13px;font-weight:600;color:#334155;display:block;margin-bottom:8px;">Email Type</label>
+    <div class="email-type-grid">
+      <button type="button" class="email-type-btn active" data-type="job_application" onclick="selectEmailType(this)">Job Application</button>
+      <button type="button" class="email-type-btn" data-type="internship_application" onclick="selectEmailType(this)">Internship Application</button>
+      <button type="button" class="email-type-btn" data-type="recruiter_followup" onclick="selectEmailType(this)">Recruiter Follow-up</button>
+      <button type="button" class="email-type-btn" data-type="referral_request" onclick="selectEmailType(this)">Referral Request</button>
+    </div>
+
+    <div class="form-actions" style="border-top:none;padding-top:16px;">
+      <button type="button" class="btn btn-primary" id="genEmailBtn" {% if not has_data %}disabled{% endif %} onclick="generateEmail()">Generate Email</button>
+    </div>
+
+    <div id="emailOutput" class="doc-output" style="display:none;">
+      <div class="doc-output-header">
+        <span>Preview</span>
+        <div class="export-btns">
+          <button type="button" class="btn btn-secondary" onclick="downloadDoc('email','txt')">⬇️ TXT</button>
+          <button type="button" class="btn btn-secondary" onclick="downloadDoc('email','pdf')">⬇️ PDF</button>
+        </div>
+      </div>
+      <div class="email-subject-line"><strong>Subject:</strong> <span id="emailSubject"></span></div>
+      <pre id="emailText" class="doc-preview"></pre>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .doc-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .doc-tab {
+    padding: 10px 18px; border: 1px solid #e2e8f0; border-radius: 10px;
+    background: white; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer;
+  }
+  .doc-tab.active { background: #2563eb; color: white; border-color: #2563eb; }
+
+  .tone-picker, .email-type-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+  .tone-btn, .email-type-btn {
+    padding: 9px 16px; border: 1px solid #e2e8f0; border-radius: 20px;
+    background: #f8fafc; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;
+  }
+  .tone-btn.active, .email-type-btn.active {
+    background: #eff6ff; border-color: #93c5fd; color: #1d4ed8;
+  }
+
+  .doc-output { margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 20px; }
+  .doc-output-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; flex-wrap: wrap; gap: 10px;
+  }
+  .doc-output-header span { font-size: 14px; font-weight: 700; color: #334155; }
+  .export-btns { display: flex; gap: 8px; }
+
+  .doc-preview {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 20px; font-family: inherit; font-size: 14px; line-height: 1.7;
+    white-space: pre-wrap; color: #334155; max-height: 480px; overflow-y: auto;
+    margin: 0;
+  }
+
+  .email-subject-line {
+    font-size: 14px; color: #475569; margin-bottom: 12px;
+    padding: 10px 14px; background: #eff6ff; border-radius: 8px;
+  }
+
+  .data-status { display: flex; gap: 16px; font-size: 13px; }
+  .status-ok { color: #16a34a; font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let selectedTone = 'professional';
+  let selectedEmailType = 'job_application';
+
+  function switchTab(tab) {
+    document.querySelectorAll('.doc-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.getElementById('coverPanel').style.display = tab === 'cover' ? 'block' : 'none';
+    document.getElementById('emailPanel').style.display = tab === 'email' ? 'block' : 'none';
+  }
+
+  function selectTone(btn) {
+    document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedTone = btn.dataset.tone;
+  }
+
+  function selectEmailType(btn) {
+    document.querySelectorAll('.email-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedEmailType = btn.dataset.type;
+  }
+
+  async function generateCoverLetter() {
+    const btn = document.getElementById('genCoverBtn');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    const res = await fetch('{{ url_for("documents_cover_letter") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tone: selectedTone }),
+    });
+    const data = await res.json();
+    btn.disabled = false;
+    btn.textContent = 'Generate Cover Letter';
+
+    if (data.error) { alert(data.error); return; }
+    document.getElementById('coverText').textContent = data.content;
+    document.getElementById('coverOutput').style.display = 'block';
+  }
+
+  async function generateEmail() {
+    const btn = document.getElementById('genEmailBtn');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    const res = await fetch('{{ url_for("documents_email") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email_type: selectedEmailType }),
+    });
+    const data = await res.json();
+    btn.disabled = false;
+    btn.textContent = 'Generate Email';
+
+    if (data.error) { alert(data.error); return; }
+    document.getElementById('emailSubject').textContent = data.subject;
+    document.getElementById('emailText').textContent = data.body;
+    document.getElementById('emailOutput').style.display = 'block';
+  }
+
+  function downloadDoc(kind, format) {
+    window.location.href = `{{ url_for('documents_download', kind='KIND', fmt='FMT') }}`
+      .replace('KIND', kind).replace('FMT', format);
+  }
+</script>
+{% endblock %}
