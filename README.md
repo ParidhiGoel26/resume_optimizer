@@ -187,7 +187,3 @@ Set `DEMO_MODE=true` in `.env` and restart the server.
 ## Contributors
 
 - **Paridhi Goel**
-
-## License
-
-Private / educational use — add a license file if you plan to open-source this project.
