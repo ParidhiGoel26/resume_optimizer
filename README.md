@@ -1,4 +1,4 @@
-# Career AI — Resume Optimizer
+# Career Copilot - AI-Powered Career Assistant
 
 An AI-powered career toolkit built with Flask. Upload a resume and job description once, then use multiple tools — resume tailoring, ATS analysis, career coaching, interview prep, and document generation — all from a single session.
 
